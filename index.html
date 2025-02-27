@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Memory Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #container {
+            border: 3px solid rgba(142, 68, 173, 0.3);
+            padding: 30px 40px;
+            border-radius: 20px;
+            position: relative;
+            background: rgba(52, 73, 94, 0.95);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            max-width: 90%;
+            width: 500px;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        #word {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 25px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+        }
+        button {
+            font-size: 18px;
+            padding: 12px 30px;
+            margin: 12px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .new-button {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+        .repeated-button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .retry-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            display: none;
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 25px;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        #progress {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+            font-weight: 500;
+        }
+        #timer-container {
+            width: calc(100% + 80px);
+            background-color: rgba(70, 86, 105, 0.4);
+            height: 8px;
+            border-radius: 10px;
+            margin: 20px -40px -30px;
+            overflow: hidden;
+            position: relative;
+        }
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #f1c40f, #f39c12);
+            transition: width 1s linear;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+        }
+        @media (max-width: 600px) {
+            #container {
+                padding: 20px;
+                width: 90%;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+                width: 80%;
+                margin: 8px auto;
+                display: block;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            #word {
+                font-size: 28px;
+            }
+        }
+        .win-popup {
+            position: fixed;
+            top: -100%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(39, 174, 96, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1001;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .win-popup.show {
+            top: 50%;
+        }
+
+        .win-popup h2 {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .win-popup .stats {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: white;
+        }
+
+        .win-popup .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+            margin: 10px 0;
+        }
+
+        .win-popup button {
+            background: white;
+            color: #27ae60;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .win-popup button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Word Memory Test</h1>
+        <p id="progress">Word: 1/15</p>
+        <p id="word">Loading...</p>
+        <button class="new-button" onclick="checkAnswer('New')">New</button>
+        <button class="repeated-button" onclick="checkAnswer('Repeated')">Repeated</button>
+        <p id="result"></p>
+        <button class="retry-button" onclick="restartGame()" id="retry">Play Again</button>
+        <div id="timer-container">
+            <div id="timer-bar"></div>
+        </div>
+    </div>
+    <audio id="winSound" src="suiii.mp3"></audio>
+    <audio id="loseSound" src="laugh.mp3"></audio>
+    <canvas id="confetti"></canvas>
+    <div class="win-popup" id="winPopup">
+        <h2>🎉 مبروك! لقد فزت! 🎉</h2>
+        <div class="stats">
+            <div class="score" id="finalScore"></div>
+            <p id="timeStats"></p>
+        </div>
+        <button onclick="restartGame()">العب مرة أخرى</button>
+    </div>
+
+    <script>
+        function generateWords() {
+            const allWords = [
+                "convoluted", "meticulous", "ubiquitous", "gregarious", "incongruous", 
+                "perspicacious", "vociferous", "loquacious", "capricious", "insidious",
+                "serendipitous", "tenacious", "sagacious", "voracious", "punctilious"
+            ];
+            let uniqueWords = [...allWords].sort(() => 0.5 - Math.random()).slice(0, 11);
+            let repeatedWords = uniqueWords.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * (6 - 4 + 1)) + 4);
+            let words = [...uniqueWords, ...repeatedWords].sort(() => 0.5 - Math.random());
+            return words;
+        }
+
+        let words = generateWords();
+        let seenWords = new Set();
+        let currentIndex = 0;
+        let timeLeft = 15;
+        let timer;
+        let startTime;
+        let endTime;
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 15;
+            startTime = new Date();
+            document.getElementById("timer-bar").style.width = "100%";
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer-bar").style.width = (timeLeft / 15 * 100) + "%";
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById("result").textContent = "Time's up!";
+                    playLoseSound();
+                    disableButtons();
+                    document.getElementById("retry").style.display = "inline-block";
+                }
+            }, 1000);
+        }
+
+        function showWinPopup() {
+            endTime = new Date();
+            const timeTaken = Math.round((endTime - startTime) / 1000);
+            const popup = document.getElementById("winPopup");
+            document.getElementById("finalScore").textContent = `النتيجة النهائية: ${currentIndex}/15`;
+            document.getElementById("timeStats").textContent = `الوقت المستغرق: ${timeTaken} ثواني`;
+            popup.classList.add("show");
+        }
+
+        function showNextWord() {
+            if (currentIndex >= 15) {
+                document.getElementById("result").textContent = "You won! 🎉";
+                showWinPopup();
+                launchConfetti();
+                playWinSound();
+                disableButtons();
+                document.getElementById("retry").style.display = "inline-block";
+                return;
+            }
+            document.getElementById("word").textContent = words[currentIndex];
+            document.getElementById("progress").textContent = `Word: ${currentIndex + 1}/15`;
+        }
+
+        function checkAnswer(choice) {
+            let word = words[currentIndex];
+            let isRepeated = seenWords.has(word);
+            if ((choice === "Repeated" && !isRepeated) || (choice === "New" && isRepeated)) {
+                document.getElementById("result").textContent = "Fail! You lost.";
+                clearInterval(timer);
+                playLoseSound();
+                disableButtons();
+                document.getElementById("retry").style.display = "inline-block";
+                return;
+            }
+            seenWords.add(word);
+            currentIndex++;
+            showNextWord();
+        }
+
+        function playWinSound() {
+            document.getElementById("winSound").play();
+        }
+
+        function playLoseSound() {
+            document.getElementById("loseSound").play();
+        }
+
+        function disableButtons() {
+            document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+            document.getElementById("retry").disabled = false;
+        }
+
+        function restartGame() {
+            words = generateWords();
+            seenWords.clear();
+            currentIndex = 0;
+            document.getElementById("retry").style.display = "none";
+            document.getElementById("result").textContent = "";
+            document.getElementById("winPopup").classList.remove("show");
+            document.querySelectorAll("button").forEach(btn => btn.disabled = false);
+            showNextWord();
+            startTimer();
+        }
+
+        showNextWord();
+        startTimer();
+    </script>
+</body>
+</html>
